@@ -23,7 +23,7 @@ function createPackageJson(cwd) {
             description: "Experimental piercer stronghold. No tests.",
             main: "src/index.js",
             bin: {
-              [projectName]: "./src/cli.js"
+              [projectName]: "src/cli.js"
             },
             scripts: {"postinstall": "echo 'Customize this postinstall string in package.json'"},
             keywords: ["cute", "development", "deployment", "utility"],
