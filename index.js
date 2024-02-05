@@ -25,7 +25,9 @@ function createPackageJson(cwd) {
             bin: {
               [projectName]: "src/cli.js"
             },
-            scripts: {"postinstall": "echo 'Customize this postinstall string in package.json'"},
+            scripts: {"postinstall": "echo 'Customize this postinstall string in package.json'",
+                     "dev": "node ./src/index.js"
+                     },
             keywords: ["cute", "development", "deployment", "utility"],
             author: "",
             license: "CC-BY-4.0"
@@ -36,7 +38,7 @@ function createPackageJson(cwd) {
 }
 
 function createIndexJs(cwd) {
-    const indexJsPath = path.join(cwd, 'index.js');
+    const indexJsPath = path.join(cwd, 'src/index.js');
     if (!fs.existsSync(indexJsPath)) {
         const indexJsContent = `// require('dotenv').config(); // parses .env - use process.env.EDIT_THIS_KEY
         
@@ -48,7 +50,7 @@ module.exports = {  };
 }
 
 function createCliJs(cwd) {
-    const cliJsPath = path.join(cwd, 'cli.js');
+    const cliJsPath = path.join(cwd, 'src/cli.js');
     if (!fs.existsSync(cliJsPath)) {
         const cliJsContent = `#!/usr/bin/env node
         
