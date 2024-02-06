@@ -2,8 +2,10 @@
 
 const fs = require('fs');
 const path = require('path');
+const packageJson = require('./package.json');
 
-function initializeProject() {
+function initializeProject()
+{
     const cwd = process.cwd();
     createPackageJson(cwd);
     createIndexJs(cwd);
@@ -13,57 +15,67 @@ function initializeProject() {
     console.log("Project initialization completed with cute-npm-init.");
 }
 
-function createPackageJson(cwd) {
+function createPackageJson(cwd)
+{
+    console.log("cute-npm-init v"+packageJson.version);
     const projectName = path.basename(cwd);
     const packageJsonPath = path.join(cwd, 'package.json');
-    if (!fs.existsSync(packageJsonPath)) {
+    if (!fs.existsSync(packageJsonPath))
+    {
         const packageJson = {
-            name: projectName,
-            version: "0.1.0",
-            description: "Experimental piercer stronghold. No tests.",
-            main: "src/index.js",
-            bin: {
-              [projectName]: "src/cli.js"
-            },
-            scripts: {"postinstall": "echo 'Customize this postinstall string in package.json'",
-                     "dev": "node ./src/index.js"
-                     },
-            keywords: ["cute", "development", "deployment", "utility"],
-            author: "",
-            license: "CC-BY-4.0"
+            name: projectName, version: "0.1.0", description: "Experimental piercer stronghold. No tests.", main: "src/index.js", bin: {
+                [projectName]: "src/cli.js"
+            }, scripts: {
+                "postinstall": "echo 'Customize this postinstall string in package.json'", "dev": "node ./src/index.js", "cli": "node ./src/cli.js"
+            }, keywords: ["cute", "development", "deployment", "utility"], author: "", license: "CC-BY-4.0"
         };
         fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
         console.log("Generated package.json with cute defaults.");
     }
 }
 
-function createIndexJs(cwd) {
-    const indexJsPath = path.join(cwd, 'src/index.js');
-    if (!fs.existsSync(indexJsPath)) {
-        const indexJsContent = `// require('dotenv').config(); // parses .env - use process.env.EDIT_THIS_KEY
+function createIndexJs(cwd)
+{
+    const srcDirPath = path.join(cwd, 'src');
+    const indexJsPath = path.join(srcDirPath, 'index.js');
+    if (!fs.existsSync(srcDirPath))
+    {fs.mkdirSync(srcDirPath);}
+    if (!fs.existsSync(indexJsPath))
+    {
+        const indexJsContent = `// require('dotenv').config(); // Usage reminder: .env with process.env.EDIT_THIS_KEY
+        
+console.log("Test npm run dev");
         
 module.exports = {  };
 `;
         fs.writeFileSync(indexJsPath, indexJsContent);
-        console.log("Generated index.js with CLI functionality.");
+        console.log("Generated index.js with cute defaults. For quick testing: npm run dev");
     }
 }
 
-function createCliJs(cwd) {
-    const cliJsPath = path.join(cwd, 'src/cli.js');
-    if (!fs.existsSync(cliJsPath)) {
+function createCliJs(cwd)
+{
+    const srcDirPath = path.join(cwd, 'src');
+    const cliJsPath = path.join(srcDirPath, 'cli.js');
+    if (!fs.existsSync(srcDirPath))
+    {fs.mkdirSync(srcDirPath);}
+    if (!fs.existsSync(cliJsPath))
+    {
         const cliJsContent = `#!/usr/bin/env node
         
 console.log("Running", "${path.basename(cwd)}!");
+console.log("or npm run cli");
 `;
         fs.writeFileSync(cliJsPath, cliJsContent);
-        console.log("Generated cli.js with CLI functionality.");
+        console.log("Generated cli.js with CLI functionality. For quick testing: npm run cli");
     }
 }
 
-function createNpmIgnore(cwd) {
+function createNpmIgnore(cwd)
+{
     const npmIgnorePath = path.join(cwd, '.npmignore');
-    if (!fs.existsSync(npmIgnorePath)) {
+    if (!fs.existsSync(npmIgnorePath))
+    {
         const npmIgnoreContent = `**/.DS_Store
 **/Thumbs.db
 *.log
@@ -87,9 +99,11 @@ test/
     }
 }
 
-function createGitIgnore(cwd) {
+function createGitIgnore(cwd)
+{
     const gitIgnorePath = path.join(cwd, '.gitignore');
-    if (!fs.existsSync(gitIgnorePath)) {
+    if (!fs.existsSync(gitIgnorePath))
+    {
         const gitIgnoreContent = `**/.git
         
 # Logs
@@ -229,8 +243,11 @@ dist
 }
 
 // Detect if being run directly from the CLI
-if (require.main === module) {
+if (require.main === module)
+{
     initializeProject();
-} else {
-    module.exports = { initializeProject };
+}
+else
+{
+    module.exports = {initializeProject};
 }
