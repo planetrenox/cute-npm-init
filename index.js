@@ -23,11 +23,19 @@ function createPackageJson(cwd)
     if (!fs.existsSync(packageJsonPath))
     {
         const packageJson = {
-            name: projectName, version: "0.1.0", description: "Experimental piercer stronghold. No tests.", main: "src/index.js", bin: {
+            name: projectName, 
+			version: "0.1.0", 
+			description: "Experimental piercer stronghold. No tests.", main: "src/index.js", 
+			bin: {
                 [projectName]: "src/cli.js"
-            }, scripts: {
+            }, 
+			scripts: {
                 "postinstall": "echo 'Customize this postinstall string in package.json'", "dev": "node ./src/index.js", "cli": "node ./src/cli.js"
-            }, keywords: ["cute", "development", "deployment", "utility"], author: "", license: "CC-BY-4.0"
+            }, 
+			keywords: ["cute", "development", "deployment", "utility"], 
+			author: "", 
+			license: "CC-BY-4.0",
+			"homepage": ""
         };
         fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
         console.log("Generated package.json with cute defaults.");
@@ -105,6 +113,7 @@ function createGitIgnore(cwd)
     if (!fs.existsSync(gitIgnorePath))
     {
         const gitIgnoreContent = `**/.git
+package-lock.json
         
 # Logs
 logs
