@@ -73,7 +73,7 @@ const provider = (() => {
 module.exports = { provider };
 `;
         fs.writeFileSync(indexJsPath, indexJsContent);
-        console.log("Generated index.js with cute defaults. For quick testing: npm run dev");
+        console.log("Generated index.js with cute defaults. For quick testing: npm run index");
     }
 }
 
