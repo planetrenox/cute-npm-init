@@ -1,6 +1,6 @@
 {
   "name": "cute-npm-init",
-  "version": "0.7.4",
+  "version": "0.8.0",
   "description": "A versatile Node.js project template for rapid development and deployment, automating initial setup with CLI and programmable capabilities.",
   "main": "index.js",
   "bin": {
@@ -17,7 +17,8 @@
     "quickstart",
     "npm-init",
     "automation",
-    "cute"
+    "cute",
+    "npm"
   ],
   "author": "bit.ly/incessant-vibration",
   "license": "CC-BY-4.0",

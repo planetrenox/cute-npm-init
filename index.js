@@ -12,30 +12,33 @@ function initializeProject()
     createCliJs(cwd);
     createNpmIgnore(cwd);
     createGitIgnore(cwd);
+    createReadMe(cwd);
     console.log("Project initialization completed with cute-npm-init.");
 }
 
 function createPackageJson(cwd)
 {
-    console.log("cute-npm-init v"+packageJson.version);
+    console.log("cute-npm-init v" + packageJson.version);
     const projectName = path.basename(cwd);
     const packageJsonPath = path.join(cwd, 'package.json');
     if (!fs.existsSync(packageJsonPath))
     {
         const packageJson = {
-            name: projectName, 
-			version: "0.1.0", 
-			description: "Experimental piercer stronghold. No tests.", main: "src/index.js", 
-			bin: {
+            name: projectName,
+            version: "0.1.0",
+            description: "Experimental piercer stronghold. No tests.", main: "src/index.js",
+            bin: {
                 [projectName]: "src/cli.js"
-            }, 
-			scripts: {
-                "postinstall": "echo 'Customize this postinstall string in package.json'", "dev": "node ./src/index.js", "cli": "node ./src/cli.js"
-            }, 
-			keywords: ["cute", "development", "deployment", "utility"], 
-			author: "", 
-			license: "CC-BY-4.0",
-			"homepage": ""
+            },
+            scripts: {
+                "postinstall": "echo 'Customize this postinstall string in package.json'",
+                "index": "node ./src/index.js",
+                "cli": "node ./src/cli.js"
+            },
+            keywords: ["cute"],
+            author: "",
+            license: "CC-BY-4.0",
+            homepage: ""
         };
         fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
         console.log("Generated package.json with cute defaults.");
@@ -50,11 +53,24 @@ function createIndexJs(cwd)
     {fs.mkdirSync(srcDirPath);}
     if (!fs.existsSync(indexJsPath))
     {
-        const indexJsContent = `// require('dotenv').config(); // Usage reminder: .env with process.env.EDIT_THIS_KEY
-        
-console.log("Test npm run dev");
-        
-module.exports = {  };
+        const indexJsContent = `// require('dotenv').config();
+console.log("Test npm run index");
+
+const provider = (() => {
+  const _private = () => {};
+
+  return {
+    component: {
+      part: () => {
+        console.log("Starting...");
+      },
+    },
+  };
+})();
+   
+   
+   
+module.exports = { provider };
 `;
         fs.writeFileSync(indexJsPath, indexJsContent);
         console.log("Generated index.js with cute defaults. For quick testing: npm run dev");
@@ -248,6 +264,64 @@ dist
 `;
         fs.writeFileSync(gitIgnorePath, gitIgnoreContent);
         console.log("Generated .gitignore with cute npm defaults.");
+    }
+}
+
+function createReadMe(cwd)
+{
+    const readMePath = path.join(cwd, 'readme.md');
+    if (!fs.existsSync(readMePath))
+    {
+        const readMeContent = `# ${path.basename(cwd)}
+
+
+A small description.
+
+
+## Features
+
+
+- Item
+
+- Item
+
+- Item
+
+
+## Why
+
+
+This package solves ...
+
+
+## Getting Started
+
+
+### Installation
+
+
+1. Install Physical Link locally.
+
+
+   \`\`\`
+
+   npm install ${path.basename(cwd)}
+   npm install --global ${path.basename(cwd)}
+
+   \`\`\`
+
+
+### Usage
+
+
+   \`\`\`
+
+   const { provider } = require('${path.basename(cwd)}');
+
+   \`\`\`
+`;
+        fs.writeFileSync(readMePath, readMeContent);
+        console.log("Generated readme.md with cute defaults.");
     }
 }
 
