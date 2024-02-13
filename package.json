@@ -1,6 +1,6 @@
 {
   "name": "cute-npm-init",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "A versatile Node.js project template for rapid development and deployment, automating initial setup with CLI and programmable capabilities.",
   "main": "index.js",
   "bin": {

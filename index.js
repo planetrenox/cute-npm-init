@@ -53,8 +53,12 @@ function createIndexJs(cwd)
     {fs.mkdirSync(srcDirPath);}
     if (!fs.existsSync(indexJsPath))
     {
-        const indexJsContent = `// require('dotenv').config();
-console.log("Test npm run index");
+        const indexJsContent = `async function test()
+{
+    // require('dotenv').config(); // process.env.EDIT_ME
+    console.log("Test npm run index");
+}
+
 
 const provider = (() => {
   const _private = () => {};
@@ -69,7 +73,7 @@ const provider = (() => {
 })();
    
    
-   
+test();
 module.exports = { provider };
 `;
         fs.writeFileSync(indexJsPath, indexJsContent);
