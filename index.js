@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
-const packageJson = require('./package.json');
+import packageJson from './package.json' assert { type: 'json' };
+import { program } from 'commander';
 
-function initializeProject()
+import fs   from 'fs';
+import path from 'path';
+function main()
 {
     const cwd = process.cwd();
     createPackageJson(cwd);
@@ -13,7 +14,15 @@ function initializeProject()
     createNpmIgnore(cwd);
     createGitIgnore(cwd);
     createReadMe(cwd);
-    console.log("Project initialization completed with cute-npm-init.");
+
+    program
+    .description("npm init shorthand")
+    .arguments("[optionalArg]")
+    .action((optionalArg) => {
+        //console.log(`dir ${process.cwd()} arg ${optionalArg}`);
+        console.log(`Project initialization completed with cute-npm-init`);
+});
+    program.parse(process.argv);
 }
 
 function createPackageJson(cwd)
@@ -21,12 +30,13 @@ function createPackageJson(cwd)
     console.log("cute-npm-init v" + packageJson.version);
     const projectName = path.basename(cwd);
     const packageJsonPath = path.join(cwd, 'package.json');
-    if (!fs.existsSync(packageJsonPath))
-    {
+    if (!fs.existsSync(packageJsonPath)) {
         const packageJson = {
             name: projectName,
             version: "0.1.0",
-            description: "Experimental piercer stronghold. No tests.", main: "src/index.js",
+            description: "Experimental piercer stronghold. No tests.",
+            type: "module",
+            main: "src/index.js",
             bin: {
                 [projectName]: "src/cli.js"
             },
@@ -35,6 +45,7 @@ function createPackageJson(cwd)
                 "index": "node ./src/index.js",
                 "cli": "node ./src/cli.js"
             },
+            exports: "./src/index.js",
             keywords: ["cute"],
             author: "",
             license: "CC-BY-4.0",
@@ -49,32 +60,39 @@ function createIndexJs(cwd)
 {
     const srcDirPath = path.join(cwd, 'src');
     const indexJsPath = path.join(srcDirPath, 'index.js');
-    if (!fs.existsSync(srcDirPath))
-    {fs.mkdirSync(srcDirPath);}
-    if (!fs.existsSync(indexJsPath))
-    {
-        const indexJsContent = `async function test()
-{
-    // require('dotenv').config(); // process.env.EDIT_ME
-    console.log("Test npm run index");
-}
+    if (!fs.existsSync(srcDirPath)) {fs.mkdirSync(srcDirPath);}
+    if (!fs.existsSync(indexJsPath)) {
+        const indexJsContent = `// require('dotenv').config(); // process.env.EDIT_ME
 
+const test_options = (selector) => {
+    const el = document.querySelector(selector);
+    console.log("Starting test: npm run index");
+    el.hide = () => el.style.display = 'none';
+    return el;
+};
 
-const provider = (() => {
-  const _private = () => {};
+const test = {
+  con: {
+    log: () => {
+      console.log("Starting test: npm run index");
+    },
+  },
+};
 
+const test_with_private = (() => {
+  const _var = () => {};
+  console.log("iife");
   return {
-    component: {
-      part: () => {
-        console.log("Starting...");
+    con: {
+      log: () => {
+        console.log("Starting test: npm run index");
       },
     },
   };
 })();
-   
-   
-test();
-module.exports = { provider };
+
+test.con.log();
+export default test;
 `;
         fs.writeFileSync(indexJsPath, indexJsContent);
         console.log("Generated index.js with cute defaults. For quick testing: npm run index");
@@ -85,14 +103,20 @@ function createCliJs(cwd)
 {
     const srcDirPath = path.join(cwd, 'src');
     const cliJsPath = path.join(srcDirPath, 'cli.js');
-    if (!fs.existsSync(srcDirPath))
-    {fs.mkdirSync(srcDirPath);}
-    if (!fs.existsSync(cliJsPath))
-    {
+    if (!fs.existsSync(srcDirPath)) {fs.mkdirSync(srcDirPath);}
+    if (!fs.existsSync(cliJsPath)) {
         const cliJsContent = `#!/usr/bin/env node
-        
+//import { program } from 'commander';
 console.log("Running", "${path.basename(cwd)}!");
 console.log("or npm run cli");
+
+//program
+//.description("accepts 0 or 1 arguments")
+//.arguments("[optionalArg]")
+//.action((optionalArg) => {
+//  console.log(\`dir \${process.cwd()} arg \${optionalArg}\`);
+//});
+//program.parse(process.argv);
 `;
         fs.writeFileSync(cliJsPath, cliJsContent);
         console.log("Generated cli.js with CLI functionality. For quick testing: npm run cli");
@@ -102,8 +126,7 @@ console.log("or npm run cli");
 function createNpmIgnore(cwd)
 {
     const npmIgnorePath = path.join(cwd, '.npmignore');
-    if (!fs.existsSync(npmIgnorePath))
-    {
+    if (!fs.existsSync(npmIgnorePath)) {
         const npmIgnoreContent = `**/.DS_Store
 **/Thumbs.db
 *.log
@@ -130,8 +153,7 @@ test/
 function createGitIgnore(cwd)
 {
     const gitIgnorePath = path.join(cwd, '.gitignore');
-    if (!fs.existsSync(gitIgnorePath))
-    {
+    if (!fs.existsSync(gitIgnorePath)) {
         const gitIgnoreContent = `**/.git
 package-lock.json
         
@@ -274,8 +296,7 @@ dist
 function createReadMe(cwd)
 {
     const readMePath = path.join(cwd, 'readme.md');
-    if (!fs.existsSync(readMePath))
-    {
+    if (!fs.existsSync(readMePath)) {
         const readMeContent = `# ${path.basename(cwd)}
 
 
@@ -329,12 +350,5 @@ This package solves ...
     }
 }
 
-// Detect if being run directly from the CLI
-if (require.main === module)
-{
-    initializeProject();
-}
-else
-{
-    module.exports = {initializeProject};
-}
+main();
+

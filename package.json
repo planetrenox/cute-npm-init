@@ -1,7 +1,8 @@
 {
   "name": "cute-npm-init",
-  "version": "0.8.2",
+  "version": "0.9.5",
   "description": "A versatile Node.js project template for rapid development and deployment, automating initial setup with CLI and programmable capabilities.",
+  "type": "module",
   "main": "index.js",
   "bin": {
     "cute-npm-init": "index.js"
@@ -9,6 +10,7 @@
   "scripts": {
     "postinstall": "echo 'cute-npm-init in a new or existing dir and it won't overwrite. Pair with cute-github-init.'"
   },
+  "exports": "./index.js",
   "keywords": [
     "nodejs",
     "template",
@@ -22,5 +24,8 @@
   ],
   "author": "bit.ly/incessant-vibration",
   "license": "CC-BY-4.0",
-  "homepage": "https://bit.ly/incessant-vibration"
+  "homepage": "https://bit.ly/incessant-vibration",
+  "dependencies": {
+    "commander": "^12.0.0"
+  }
 }
