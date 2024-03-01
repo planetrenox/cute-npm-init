@@ -1,14 +1,14 @@
 {
   "name": "cute-npm-init",
-  "version": "0.9.5",
-  "description": "A versatile Node.js project template for rapid development and deployment, automating initial setup with CLI and programmable capabilities.",
+  "version": "0.9.9",
+  "description": "A versatile npm project template for rapid development and deployment, automating initial setup with CLI and programmable capabilities.",
   "type": "module",
   "main": "index.js",
   "bin": {
     "cute-npm-init": "index.js"
   },
   "scripts": {
-    "postinstall": "echo 'cute-npm-init in a new or existing dir and it won't overwrite. Pair with cute-github-init.'"
+    "postinstall": "echo 'cute-npm-init in a new or existing dir and it won't overwrite. Pair with cute-npm-link.'"
   },
   "exports": "./index.js",
   "keywords": [

@@ -10,5 +10,4 @@ cute-npm-init
 
 
 [![image of cute-npm-image](https://unpkg.com/cute-npm-init/Bard_Generated_Image.jpg)](https://bit.ly/incessant-vibration)
-still _wip_
 

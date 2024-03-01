@@ -1,129 +1,105 @@
 #!/usr/bin/env node
-
 import packageJson from './package.json' assert { type: 'json' };
 import { program } from 'commander';
-
-import fs   from 'fs';
+import fs from 'fs';
 import path from 'path';
+import {url} from 'cute-fs';
+
+let pr = false;
+let gcf = false;
+let packageName;
+let cwd;
+let srcDirPath;
 function main()
 {
-    const cwd = process.cwd();
-    createPackageJson(cwd);
-    createIndexJs(cwd);
-    createCliJs(cwd);
-    createNpmIgnore(cwd);
-    createGitIgnore(cwd);
-    createReadMe(cwd);
-
-    program
-    .description("npm init shorthand")
-    .arguments("[optionalArg]")
-    .action((optionalArg) => {
-        //console.log(`dir ${process.cwd()} arg ${optionalArg}`);
-        console.log(`Project initialization completed with cute-npm-init`);
-});
+    program.description("npm init shorthand").arguments("[optionalArg]").action((optionalArg) =>
+    {
+        switch (optionalArg) {
+            case 'pr':
+                pr = !pr;
+                break;
+            case 'gcf':
+                gcf = !gcf;
+                break;
+        }
+    });
     program.parse(process.argv);
+
+    cwd = process.cwd();
+    packageName = path.basename(cwd);
+    srcDirPath = path.join(cwd, 'src');
+    fs.mkdirSync(srcDirPath, {recursive: true});
+    createPackageJson();
+    createIndexJs();
+    createCliJs();
+    createNpmIgnore();
+    createGitIgnore();
+    createReadMe();
+    createTestJs();
+    createDotNpmrc();
+
+    console.log(`Project initialization completed with cute-npm-init`);
 }
 
-function createPackageJson(cwd)
+function createPackageJson()
 {
     console.log("cute-npm-init v" + packageJson.version);
-    const projectName = path.basename(cwd);
     const packageJsonPath = path.join(cwd, 'package.json');
     if (!fs.existsSync(packageJsonPath)) {
         const packageJson = {
-            name: projectName,
-            version: "0.1.0",
-            description: "Experimental piercer stronghold. No tests.",
-            type: "module",
-            main: "src/index.js",
-            bin: {
-                [projectName]: "src/cli.js"
-            },
-            scripts: {
-                "postinstall": "echo 'Customize this postinstall string in package.json'",
-                "index": "node ./src/index.js",
-                "cli": "node ./src/cli.js"
-            },
-            exports: "./src/index.js",
-            keywords: ["cute"],
-            author: "",
-            license: "CC-BY-4.0",
-            homepage: ""
+            name: packageName, version: "0.1.0", description: "Experimental piercer stronghold. No tests.", type: "module", main: "src/index.js", bin: {
+                [packageName]: "src/cli.js"
+            }, scripts: {
+                "postinstall": "echo 'Installed.`", "test": "node ./src/test.js", "cli": "node ./src/cli.js"
+            }, exports: "./src/index.js", keywords: ["cute"], author: "", license: "CC-BY-4.0", homepage: pr ? 'https://bit.ly/incessant-vibration' : '', repository: pr ? `git+https://github.com/planetrenox/${packageName}.git` : `git+https://github.com/user/${packageName}.git`
+
         };
         fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
         console.log("Generated package.json with cute defaults.");
     }
 }
 
-function createIndexJs(cwd)
+function createIndexJs()
 {
-    const srcDirPath = path.join(cwd, 'src');
     const indexJsPath = path.join(srcDirPath, 'index.js');
-    if (!fs.existsSync(srcDirPath)) {fs.mkdirSync(srcDirPath);}
     if (!fs.existsSync(indexJsPath)) {
-        const indexJsContent = `// require('dotenv').config(); // process.env.EDIT_ME
-
-const test_options = (selector) => {
-    const el = document.querySelector(selector);
-    console.log("Starting test: npm run index");
-    el.hide = () => el.style.display = 'none';
-    return el;
-};
-
-const test = {
-  con: {
-    log: () => {
-      console.log("Starting test: npm run index");
-    },
-  },
-};
-
-const test_with_private = (() => {
-  const _var = () => {};
-  console.log("iife");
-  return {
-    con: {
-      log: () => {
-        console.log("Starting test: npm run index");
-      },
-    },
-  };
-})();
-
-test.con.log();
-export default test;
-`;
-        fs.writeFileSync(indexJsPath, indexJsContent);
-        console.log("Generated index.js with cute defaults. For quick testing: npm run index");
+        fs.writeFileSync(indexJsPath, `// import dotenv from 'dotenv'; dotenv.config(); // process.env.EDIT_ME
+export const testMe = () => console.log("test.");
+`);
+        console.log("Generated index.js with cute defaults. For quick testing: npm run test");
     }
 }
 
-function createCliJs(cwd)
+function createCliJs()
 {
-    const srcDirPath = path.join(cwd, 'src');
     const cliJsPath = path.join(srcDirPath, 'cli.js');
-    if (!fs.existsSync(srcDirPath)) {fs.mkdirSync(srcDirPath);}
     if (!fs.existsSync(cliJsPath)) {
         const cliJsContent = `#!/usr/bin/env node
 //import { program } from 'commander';
-console.log("Running", "${path.basename(cwd)}!");
-console.log("or npm run cli");
+console.log("Running", "${packageName}!");
+console.log("or npm run test");
 
-//program
-//.description("accepts 0 or 1 arguments")
-//.arguments("[optionalArg]")
-//.action((optionalArg) => {
-//  console.log(\`dir \${process.cwd()} arg \${optionalArg}\`);
-//});
-//program.parse(process.argv);
+// program
+// .description("accepts 0 or 1 arguments")
+// .arguments("[optionalArg]")
+// .action((optionalArg) => {
+//  switch (optionalArg) {
+//             case 'op1':
+//                 !true = !false;
+//                 break;
+//             case 'op2':
+//                 !true = !false;
+//                 break;
+//         }
+// });
+// program.parse(process.argv);
 `;
         fs.writeFileSync(cliJsPath, cliJsContent);
-        console.log("Generated cli.js with CLI functionality. For quick testing: npm run cli");
+        console.log("Generated cli.js with CLI functionality. For placeholder testing: npm run cli");
     }
 }
 
-function createNpmIgnore(cwd)
+function createNpmIgnore()
 {
     const npmIgnorePath = path.join(cwd, '.npmignore');
     if (!fs.existsSync(npmIgnorePath)) {
@@ -150,7 +126,7 @@ test/
     }
 }
 
-function createGitIgnore(cwd)
+function createGitIgnore()
 {
     const gitIgnorePath = path.join(cwd, '.gitignore');
     if (!fs.existsSync(gitIgnorePath)) {
@@ -293,14 +269,15 @@ dist
     }
 }
 
-function createReadMe(cwd)
+function createReadMe()
 {
     const readMePath = path.join(cwd, 'readme.md');
     if (!fs.existsSync(readMePath)) {
-        const readMeContent = `# ${path.basename(cwd)}
+        const readMeContent = `[available on npmjs](https://www.npmjs.com/package/${packageName})
+# ${packageName}
 
 
-A small description.
+A tiny description.
 
 
 ## Features
@@ -325,28 +302,53 @@ This package solves ...
 ### Installation
 
 
-1. Install Physical Link locally.
+1. Install ${packageName} locally.
 
 
    \`\`\`
-
-   npm install ${path.basename(cwd)}
-   npm install --global ${path.basename(cwd)}
-
+   npm install ${packageName}
+   npm install --global ${packageName}
    \`\`\`
 
 
 ### Usage
 
 
+   \`\`\`JavaScript
+   import default from '${packageName}';
    \`\`\`
-
-   const { provider } = require('${path.basename(cwd)}');
-
-   \`\`\`
+   
+![image of banner](https://fakeimg.pl/730x380)
 `;
         fs.writeFileSync(readMePath, readMeContent);
         console.log("Generated readme.md with cute defaults.");
+    }
+}
+
+function createTestJs()
+{
+
+    const testJsPath = path.join(srcDirPath, 'test.js');
+    if (!fs.existsSync(testJsPath)) {
+        const testJsContent = `// import dotenv from 'dotenv'; dotenv.config(); // process.env.EDIT_ME // import { _, __ } from 'cute-con';
+import { testMe } from './index.js';
+
+const test = () => console.log("tested test.js");
+
+test();
+testMe();
+`;
+        fs.writeFileSync(testJsPath, testJsContent);
+        console.log("Generated test.js with tests: npm run test");
+    }
+}
+
+function createDotNpmrc()
+{
+    const npmrcPath = path.join(cwd, '.npmrc');
+    if (!fs.existsSync(npmrcPath)) {
+        fs.writeFileSync(npmrcPath, `package-lock=false`);
+        console.log("Generated .npmrc");
     }
 }
 
