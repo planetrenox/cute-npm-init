@@ -1,7 +1,7 @@
 {
   "name": "cute-npm-init",
-  "version": "0.9.9",
-  "description": "A versatile npm project template for rapid development and deployment, automating initial setup with CLI and programmable capabilities.",
+  "version": "1.0.0",
+  "description": "npm init but cute",
   "type": "module",
   "main": "index.js",
   "bin": {

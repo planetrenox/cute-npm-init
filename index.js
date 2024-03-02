@@ -1,30 +1,24 @@
 #!/usr/bin/env node
 import packageJson from './package.json' assert { type: 'json' };
-import { program } from 'commander';
 import fs from 'fs';
 import path from 'path';
-import {url} from 'cute-fs';
+import { execSync } from 'child_process';
 
-let pr = false;
-let gcf = false;
+const isPR = () =>
+{
+    try {
+        return execSync('npm whoami', {stdio: 'pipe'}).toString().trim() === 'planetrenox';
+    }
+    catch {
+        return false;
+    }
+};
+
 let packageName;
 let cwd;
 let srcDirPath;
 function main()
 {
-    program.description("npm init shorthand").arguments("[optionalArg]").action((optionalArg) =>
-    {
-        switch (optionalArg) {
-            case 'pr':
-                pr = !pr;
-                break;
-            case 'gcf':
-                gcf = !gcf;
-                break;
-        }
-    });
-    program.parse(process.argv);
-
     cwd = process.cwd();
     packageName = path.basename(cwd);
     srcDirPath = path.join(cwd, 'src');
@@ -47,12 +41,25 @@ function createPackageJson()
     const packageJsonPath = path.join(cwd, 'package.json');
     if (!fs.existsSync(packageJsonPath)) {
         const packageJson = {
-            name: packageName, version: "0.1.0", description: "Experimental piercer stronghold. No tests.", type: "module", main: "src/index.js", bin: {
+            name: packageName, version: "0.1.0",
+            description: "Experimental piercer stronghold. No tests.",
+            type: "module",
+            main: "src/index.js",
+            bin: {
                 [packageName]: "src/cli.js"
-            }, scripts: {
-                "postinstall": "echo 'Installed.`", "test": "node ./src/test.js", "cli": "node ./src/cli.js"
-            }, exports: "./src/index.js", keywords: ["cute"], author: "", license: "CC-BY-4.0", homepage: pr ? 'https://bit.ly/incessant-vibration' : '', repository: pr ? `git+https://github.com/planetrenox/${packageName}.git` : `git+https://github.com/user/${packageName}.git`
-
+            },
+            scripts: {
+                "test": "node ./src/test.js",
+                "cli": "node ./src/cli.js",
+                "build": `npx rollup src/index.js > cdn.piercer.js`,
+                "prepublishOnly": `npm run build`
+            },
+            keywords: ["cute"],
+            author: isPR() ? 'planetrenox' : '',
+            license: "CC-BY-4.0",
+            homepage: isPR() ? 'https://bit.ly/incessant-vibration' : '',
+            repository: isPR() ? `git+https://github.com/planetrenox/${packageName}.git` : `git+https://github.com/user/${packageName}.git`,
+            unpkg: "piercer.js",
         };
         fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
         console.log("Generated package.json with cute defaults.");
@@ -63,8 +70,7 @@ function createIndexJs()
 {
     const indexJsPath = path.join(srcDirPath, 'index.js');
     if (!fs.existsSync(indexJsPath)) {
-        fs.writeFileSync(indexJsPath, `// import dotenv from 'dotenv'; dotenv.config(); // process.env.EDIT_ME
-export const testMe = () => console.log("test.");
+        fs.writeFileSync(indexJsPath, `export const main = () => console.log("test.");
 `);
         console.log("Generated index.js with cute defaults. For quick testing: npm run test");
     }
@@ -131,7 +137,9 @@ function createGitIgnore()
     const gitIgnorePath = path.join(cwd, '.gitignore');
     if (!fs.existsSync(gitIgnorePath)) {
         const gitIgnoreContent = `**/.git
+.idea
 package-lock.json
+cdn.piercer.js
         
 # Logs
 logs
@@ -274,7 +282,23 @@ function createReadMe()
     const readMePath = path.join(cwd, 'readme.md');
     if (!fs.existsSync(readMePath)) {
         const readMeContent = `[available on npmjs](https://www.npmjs.com/package/${packageName})
-# ${packageName}
+\`\`\`
+    npm install ${packageName}
+\`\`\`
+\`\`\`javascript
+\`⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀
+⢸⠉⣹⠋⠉⢉⡟⢩⢋⠋⣽⡻⠭⢽⢉⠯⠭⠭⠭⢽⡍⢹⡍⠙⣯⠉⠉⠉⠉⠉⣿⢫⠉⠉⠉⢉⡟⠉⢿⢹⠉⢉⣉⢿⡝⡉⢩⢿⣻⢍⠉⠉⠩⢹⣟⡏⠉⠹⡉⢻⡍⡇
+⢸⢠⢹⠀⠀⢸⠁⣼⠀⣼⡝⠀⠀⢸⠘⠀⠀⠀⠀⠈⢿⠀⡟⡄⠹⣣⠀⠀⠐⠀⢸⡘⡄⣤⠀⡼⠁⠀⢺⡘⠉⠀⠀⠀⠫⣪⣌⡌⢳⡻⣦⠀⠀⢃⡽⡼⡀⠀⢣⢸⠸⡇
+⢸⡸⢸⠀⠀⣿⠀⣇⢠⡿⠀⠀⠀⠸⡇⠀⠀⠀⠀⠀⠘⢇⠸⠘⡀⠻⣇⠀⠀⠄⠀⡇⢣⢛⠀⡇⠀⠀⣸⠇⠀⠀⠀⠀⠀⠘⠄⢻⡀⠻⣻⣧⠀⠀⠃⢧⡇⠀⢸⢸⡇⡇
+⢸⡇⢸⣠⠀⣿⢠⣿⡾⠁⠀⢀⡀⠤⢇⣀⣐⣀⠀⠤⢀⠈⠢⡡⡈⢦⡙⣷⡀⠀⠀⢿⠈⢻⣡⠁⠀⢀⠏⠀⠀⠀⢀⠀⠄⣀⣐⣀⣙⠢⡌⣻⣷⡀⢹⢸⡅⠀⢸⠸⡇⡇
+⢸⡇⢸⣟⠀⢿⢸⡿⠀⣀⣶⣷⣾⡿⠿⣿⣿⣿⣿⣿⣶⣬⡀⠐⠰⣄⠙⠪⣻⣦⡀⠘⣧⠀⠙⠄⠀⠀⠀⠀⠀⣨⣴⣾⣿⠿⣿⣿⣿⣿⣿⣶⣯⣿⣼⢼⡇⠀⢸⡇⡇⠇
+⢸⢧⠀⣿⡅⢸⣼⡷⣾⣿⡟⠋⣿⠓⢲⣿⣿⣿⡟⠙⣿⠛⢯⡳⡀⠈⠓⠄⡈⠚⠿⣧⣌⢧⠀⠀⠀⠀⠀⣠⣺⠟⢫⡿⠓⢺⣿⣿⣿⠏⠙⣏⠛⣿⣿⣾⡇⢀⡿⢠⠀⡇
+⢸⢸⠀⢹⣷⡀⢿⡁⠀⠻⣇⠀⣇⠀⠘⣿⣿⡿⠁⠐⣉⡀⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠉⠓⠳⠄⠀⠀⠀⠀⠋⠀⠘⡇⠀⠸⣿⣿⠟⠀⢈⣉⢠⡿⠁⣼⠁⣼⠃⣼⠀⡇
+⢸⠸⣀⠈⣯⢳⡘⣇⠀⠀⠈⡂⣜⣆⡀⠀⠀⢀⣀⡴⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢽⣆⣀⠀⠀⠀⣀⣜⠕⡊⠀⣸⠇⣼⡟⢠⠏⠀⡇
+⢸⠀⡟⠀⢸⡆⢹⡜⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⠋⣾⡏⡇⡎⡇⠀⡇
+⢸⠀⢃⡆⠀⢿⡄⠑⢽⣄⠀⠀⠀⢀⠂⠠⢁⠈⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠀⠄⡐⢀⠂⠀⠀⣠⣮⡟⢹⣯⣸⣱⠁⠀⡇
+⠈⠉⠉⠉⠉⠉⠉⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁\`
+\`\`\`
 
 
 A tiny description.
@@ -287,36 +311,13 @@ A tiny description.
 
 - Item
 
-- Item
-
-
-## Why
-
-
-This package solves ...
-
-
-## Getting Started
-
-
-### Installation
-
-
-1. Install ${packageName} locally.
-
-
-   \`\`\`
-   npm install ${packageName}
-   npm install --global ${packageName}
-   \`\`\`
-
 
 ### Usage
 
 
-   \`\`\`JavaScript
-   import default from '${packageName}';
-   \`\`\`
+\`\`\`JavaScript
+    import {} from '${packageName}';
+\`\`\`
    
 ![image of banner](https://fakeimg.pl/730x380)
 `;
@@ -330,16 +331,11 @@ function createTestJs()
 
     const testJsPath = path.join(srcDirPath, 'test.js');
     if (!fs.existsSync(testJsPath)) {
-        const testJsContent = `// import dotenv from 'dotenv'; dotenv.config(); // process.env.EDIT_ME // import { _, __ } from 'cute-con';
-import { testMe } from './index.js';
-
-const test = () => console.log("tested test.js");
-
-test();
-testMe();
+        const testJsContent = `import { main } from './index.js';
+main();
 `;
         fs.writeFileSync(testJsPath, testJsContent);
-        console.log("Generated test.js with tests: npm run test");
+        console.log("Generated test.js with test: npm run test");
     }
 }
 
