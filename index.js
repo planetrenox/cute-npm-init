@@ -3,66 +3,81 @@ import packageJson from './package.json' assert { type: 'json' };
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-
-const isPR = () =>
-{
-    try {
-        return execSync('npm whoami', {stdio: 'pipe'}).toString().trim() === 'planetrenox';
-    }
-    catch {
-        return false;
-    }
-};
+import { _ } from 'cute-con';
 
 let packageName;
 let cwd;
 let srcDirPath;
+let docsDirPath;
+let god;
+let isPR = false;
+
+const whoami = () =>
+{
+    try {
+        god = execSync('npm whoami', {stdio: 'pipe'}).toString().trim();
+        if (god === 'planetrenox') isPR = true;
+    }
+    catch {}
+};
+
 function main()
 {
+    whoami();
     cwd = process.cwd();
     packageName = path.basename(cwd);
     srcDirPath = path.join(cwd, 'src');
+    docsDirPath = path.join(cwd, 'docs');
     fs.mkdirSync(srcDirPath, {recursive: true});
+    fs.mkdirSync(docsDirPath, {recursive: true});
     createPackageJson();
     createIndexJs();
     createCliJs();
-    createNpmIgnore();
+    createRollupConfig();
     createGitIgnore();
     createReadMe();
+    createIndexHtml();
     createTestJs();
     createDotNpmrc();
 
-    console.log(`Project initialization completed with cute-npm-init`);
+    _(`Project initialization completed with cute-npm-init`);
 }
 
 function createPackageJson()
 {
-    console.log("cute-npm-init v" + packageJson.version);
+    _("cute-npm-init v" + packageJson.version);
     const packageJsonPath = path.join(cwd, 'package.json');
     if (!fs.existsSync(packageJsonPath)) {
         const packageJson = {
-            name: packageName, version: "0.1.0",
-            description: "Experimental piercer stronghold. No tests.",
+            name: packageName,
+            version: "0.0.0",
+            description: "Experimental piercer stronghold.",
             type: "module",
-            main: "src/index.js",
-            bin: {
-                [packageName]: "src/cli.js"
-            },
+            module: "src/index.esm.js",
+            main: "src/index.cjs.js",
+            bin: {[packageName]: "src/cli.js"},
             scripts: {
-                "test": "node ./src/test.js",
                 "cli": "node ./src/cli.js",
-                "build": `npx rollup src/index.js > cdn.piercer.js`,
-                "prepublishOnly": `npm run build`
+                "build": "npx rollup --config src/rollup.config.js",
+                "prepublishOnly": "npm run build && npx shx cp docs/readme.md readme.md",
+                "postpublish": "npx shx rm src/index.esm.js && npx shx rm index.cjs.js && npx shx rm readme.md",
             },
-            keywords: ["cute"],
-            author: isPR() ? 'planetrenox' : '',
-            license: "CC-BY-4.0",
-            homepage: isPR() ? 'https://bit.ly/incessant-vibration' : '',
-            repository: isPR() ? `git+https://github.com/planetrenox/${packageName}.git` : `git+https://github.com/user/${packageName}.git`,
-            unpkg: "piercer.js",
+            files: ["src/index.esm.js", "src/index.cjs.js", "src/index.js", "src/cli.js"],
+            author: `${god}`,
+            license: isPR ? "CC-BY-4.0" : "MIT",
+            homepage: isPR ? `https://planetrenox.github.io/${packageName}` : '',
+            repository: `git+https://github.com/${god}/${packageName}.git`,
+            funding: isPR ? "https://bit.ly/incessant-vibration" : "",
+            keywords: [""],
+            dependencies: {
+                "cute-con": "latest",
+            },
+            devDependencies: {
+                "@rollup/plugin-node-resolve": "^15.2.3"
+            }
         };
         fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
-        console.log("Generated package.json with cute defaults.");
+        _("Generated package.json with cute defaults.");
     }
 }
 
@@ -70,9 +85,10 @@ function createIndexJs()
 {
     const indexJsPath = path.join(srcDirPath, 'index.js');
     if (!fs.existsSync(indexJsPath)) {
-        fs.writeFileSync(indexJsPath, `export const main = () => console.log("test.");
+        fs.writeFileSync(indexJsPath, `import { _ } from 'cute-con';
+export const main = () => _("test.");
 `);
-        console.log("Generated index.js with cute defaults. For quick testing: npm run test");
+        _("Generated index.js with cute defaults. For quick testing: npm run test");
     }
 }
 
@@ -81,54 +97,35 @@ function createCliJs()
     const cliJsPath = path.join(srcDirPath, 'cli.js');
     if (!fs.existsSync(cliJsPath)) {
         const cliJsContent = `#!/usr/bin/env node
-//import { program } from 'commander';
-console.log("Running", "${packageName}!");
-console.log("or npm run test");
-
-// program
-// .description("accepts 0 or 1 arguments")
-// .arguments("[optionalArg]")
-// .action((optionalArg) => {
-//  switch (optionalArg) {
-//             case 'op1':
-//                 !true = !false;
-//                 break;
-//             case 'op2':
-//                 !true = !false;
-//                 break;
-//         }
-// });
-// program.parse(process.argv);
+// import yargs from 'yargs';
+import { _ } from 'cute-con';
+_(\`${packageName}!!\`);
+// if (yargs.argv['-f'] === true) _(yargs.argv._[0]);
 `;
         fs.writeFileSync(cliJsPath, cliJsContent);
-        console.log("Generated cli.js with CLI functionality. For placeholder testing: npm run cli");
+        _("Generated cli.js with CLI functionality. For placeholder testing: npm run cli");
     }
 }
 
-function createNpmIgnore()
+function createRollupConfig()
 {
-    const npmIgnorePath = path.join(cwd, '.npmignore');
-    if (!fs.existsSync(npmIgnorePath)) {
-        const npmIgnoreContent = `**/.DS_Store
-**/Thumbs.db
-*.log
-node_modules/
-.env
-coverage/
-dist/
-*.test.js
-*.spec.js
-tests/
-__tests__/
-test/
-.git/
-.github/
-.gitlab/
-.idea/
-*.config.js
+    const rollupConfigPath = path.join(srcDirPath, 'rollup.config.js');
+    if (!fs.existsSync(rollupConfigPath)) {
+        const rollupConfigContent = `import resolve from '@rollup/plugin-node-resolve';
+
+export default {
+    input: 'src/index.js',
+    output: [
+        { file: 'src/index.cjs.js', format: 'cjs' },
+        { file: 'src/index.esm.js', format: 'es' }
+    ],
+    plugins: [
+        resolve()
+    ]
+};
 `;
-        fs.writeFileSync(npmIgnorePath, npmIgnoreContent);
-        console.log("Generated .npmignore with cute defaults.");
+        fs.writeFileSync(rollupConfigPath, rollupConfigContent);
+        _("Generated rollup.config.js with cute defaults.");
     }
 }
 
@@ -137,157 +134,76 @@ function createGitIgnore()
     const gitIgnorePath = path.join(cwd, '.gitignore');
     if (!fs.existsSync(gitIgnorePath)) {
         const gitIgnoreContent = `**/.git
-.idea
-package-lock.json
-cdn.piercer.js
-        
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-.pnpm-debug.log*
-
-# Diagnostic reports (https://nodejs.org/api/report.html)
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Directory for instrumented libs generated by jscoverage/JSCover
-lib-cov
-
-# Coverage directory used by tools like istanbul
-coverage
-*.lcov
-
-# nyc test coverage
-.nyc_output
-
-# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
-.grunt
-
-# Bower dependency directory (https://bower.io/)
-bower_components
-
-# node-waf configuration
-.lock-wscript
-
-# Compiled binary addons (https://nodejs.org/api/addons.html)
-build/Release
-
-# Dependency directories
-node_modules/
-jspm_packages/
-
-# Snowpack dependency directory (https://snowpack.dev/)
-web_modules/
-
-# TypeScript cache
-*.tsbuildinfo
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Optional stylelint cache
-.stylelintcache
-
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# Next.js build output
-.next
-out
-
-# Nuxt.js build / generate output
-.nuxt
-dist
-
-# Gatsby files
-.cache/
-# Comment in the public line in if your project uses Gatsby and not Next.js
-# https://nextjs.org/blog/next-9-1#public-directory-support
-# public
-
-# vuepress build output
-.vuepress/dist
-
-# vuepress v2.x temp and cache directory
-.temp
-.cache
-
-# Docusaurus cache and generated files
-.docusaurus
-
-# Serverless directories
-.serverless/
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
-
-# yarn v2
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-.pnp.*
+**/.DS_Store
+**/Thumbs.db
+**/.idea
+**/package-lock.json
+**/node_modules
+**/dist
+**/build
+**/*.env
+**/.cache
+**/.vscode
+**/coverage
+**/logs
+**/*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/lerna-debug.log*
+**/.pnpm-debug.log*
+**/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+**/pids
+**/*.pid
+**/*.seed
+**/*.pid.lock
+**/lib-cov
+**/*.lcov
+**/.nyc_output
+**/.grunt
+**/bower_components
+**/.lock-wscript
+**/jspm_packages/
+**/web_modules/
+**/*.tsbuildinfo
+**/.npm
+**/.eslintcache
+**/.stylelintcache
+**/.rpt2_cache/
+**/.rts2_cache_cjs/
+**/.rts2_cache_es/
+**/.rts2_cache_umd/
+**/.node_repl_history
+**/*.tgz
+**/.yarn-integrity
+**/.yarn/cache
+**/.yarn/unplugged
+**/.yarn/build-state.yml
+**/.yarn/install-state.gz
+**/.pnp.*
+**/.next
+**/out
+**/.nuxt
+**/.vuepress/dist
+**/.temp
+**/.docusaurus
+**/.serverless/
+**/.fusebox/
+**/.dynamodb/
+**/.tern-port
+**/.vscode-test
 `;
         fs.writeFileSync(gitIgnorePath, gitIgnoreContent);
-        console.log("Generated .gitignore with cute npm defaults.");
+        _("Generated .gitignore with cute npm defaults.");
     }
 }
 
 function createReadMe()
 {
-    const readMePath = path.join(cwd, 'readme.md');
+    const readMePath = path.join(docsDirPath, 'readme.md');
     if (!fs.existsSync(readMePath)) {
-        const readMeContent = `[available on npmjs](https://www.npmjs.com/package/${packageName})
-\`\`\`
-    npm install ${packageName}
-\`\`\`
-\`\`\`javascript
-\`⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀
-⢸⠉⣹⠋⠉⢉⡟⢩⢋⠋⣽⡻⠭⢽⢉⠯⠭⠭⠭⢽⡍⢹⡍⠙⣯⠉⠉⠉⠉⠉⣿⢫⠉⠉⠉⢉⡟⠉⢿⢹⠉⢉⣉⢿⡝⡉⢩⢿⣻⢍⠉⠉⠩⢹⣟⡏⠉⠹⡉⢻⡍⡇
+        const readMeContent = `available on [npm](https://www.npmjs.com/package/${packageName})
+\`\`\`⢸⠉⣹⠋⠉⢉⡟⢩⢋⠋⣽⡻⠭⢽⢉⠯⠭⠭⠭⢽⡍⢹⡍⠙⣯⠉⠉⠉⠉⠉⣿⢫⠉⠉⠉⢉⡟⠉⢿⢹⠉⢉⣉⢿⡝⡉⢩⢿⣻⢍⠉⠉⠩⢹⣟⡏⠉⠹⡉⢻⡍⡇
 ⢸⢠⢹⠀⠀⢸⠁⣼⠀⣼⡝⠀⠀⢸⠘⠀⠀⠀⠀⠈⢿⠀⡟⡄⠹⣣⠀⠀⠐⠀⢸⡘⡄⣤⠀⡼⠁⠀⢺⡘⠉⠀⠀⠀⠫⣪⣌⡌⢳⡻⣦⠀⠀⢃⡽⡼⡀⠀⢣⢸⠸⡇
 ⢸⡸⢸⠀⠀⣿⠀⣇⢠⡿⠀⠀⠀⠸⡇⠀⠀⠀⠀⠀⠘⢇⠸⠘⡀⠻⣇⠀⠀⠄⠀⡇⢣⢛⠀⡇⠀⠀⣸⠇⠀⠀⠀⠀⠀⠘⠄⢻⡀⠻⣻⣧⠀⠀⠃⢧⡇⠀⢸⢸⡇⡇
 ⢸⡇⢸⣠⠀⣿⢠⣿⡾⠁⠀⢀⡀⠤⢇⣀⣐⣀⠀⠤⢀⠈⠢⡡⡈⢦⡙⣷⡀⠀⠀⢿⠈⢻⣡⠁⠀⢀⠏⠀⠀⠀⢀⠀⠄⣀⣐⣀⣙⠢⡌⣻⣷⡀⢹⢸⡅⠀⢸⠸⡇⡇
@@ -297,32 +213,85 @@ function createReadMe()
 ⢸⠸⣀⠈⣯⢳⡘⣇⠀⠀⠈⡂⣜⣆⡀⠀⠀⢀⣀⡴⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢽⣆⣀⠀⠀⠀⣀⣜⠕⡊⠀⣸⠇⣼⡟⢠⠏⠀⡇
 ⢸⠀⡟⠀⢸⡆⢹⡜⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⠋⣾⡏⡇⡎⡇⠀⡇
 ⢸⠀⢃⡆⠀⢿⡄⠑⢽⣄⠀⠀⠀⢀⠂⠠⢁⠈⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠀⠄⡐⢀⠂⠀⠀⣠⣮⡟⢹⣯⣸⣱⠁⠀⡇
-⠈⠉⠉⠉⠉⠉⠉⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁\`
+⠈⠉⠉⠉⠉⠉⠉⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁
+\`\`\`
+\`\`\`
+npm install ${packageName}
 \`\`\`
 
 
 A tiny description.
 
 
-## Features
-
-
-- Item
-
-- Item
-
-
 ### Usage
 
 
 \`\`\`JavaScript
-    import {} from '${packageName}';
+import {} from '${packageName}';
 \`\`\`
-   
-![image of banner](https://fakeimg.pl/730x380)
+
+
+![img](https://fakeimg.pl/735x280)
 `;
         fs.writeFileSync(readMePath, readMeContent);
-        console.log("Generated readme.md with cute defaults.");
+        _("Generated readme.md with cute defaults.");
+    }
+}
+
+function createIndexHtml()
+{
+    const indexHtmlPath = path.join(cwd, 'index.html');
+    if (!fs.existsSync(indexHtmlPath)) {
+        fs.writeFileSync(indexHtmlPath, `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${packageName}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+  <style>
+    body {
+      background-color: #f0f2f5;
+      background-image: url('https://www.transparenttextures.com/patterns/light-noise-diagonal.png');
+    }
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    h1 {
+      color: #0366d6;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    p {
+      color: #4a5568;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>${packageName}</h1>
+    <div id="textContent"></div>
+  </div>
+  <script>
+    fetch('docs/readme.md')
+      .then(response => response.text())
+      .then(text => {
+        document.getElementById('textContent').innerText = text;
+      })
+      .catch(error => console.log('Error loading the textContent:', error));
+  </script>
+</body>
+
+</html>
+`);
+        _("Generated index.html with cute defaults.");
     }
 }
 
@@ -335,7 +304,7 @@ function createTestJs()
 main();
 `;
         fs.writeFileSync(testJsPath, testJsContent);
-        console.log("Generated test.js with test: npm run test");
+        _("Generated test.js with test: npm run test");
     }
 }
 
@@ -344,7 +313,7 @@ function createDotNpmrc()
     const npmrcPath = path.join(cwd, '.npmrc');
     if (!fs.existsSync(npmrcPath)) {
         fs.writeFileSync(npmrcPath, `package-lock=false`);
-        console.log("Generated .npmrc");
+        _("Generated .npmrc");
     }
 }
 
