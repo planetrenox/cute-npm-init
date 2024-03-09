@@ -53,25 +53,22 @@ function createPackageJson()
             version: "0.0.0",
             description: "Experimental piercer stronghold.",
             type: "module",
-            module: "src/index.esm.js",
-            main: "src/index.cjs.js",
+            module: "src/index.mjs",
+            main: "src/index.cjs",
             bin: {[packageName]: "src/cli.js"},
             scripts: {
                 "cli": "node ./src/cli.js",
                 "build": "npx rollup --config src/rollup.config.js",
                 "prepublishOnly": "npm run build && npx shx cp docs/readme.md readme.md",
-                "postpublish": "npx shx rm src/index.esm.js && npx shx rm index.cjs.js && npx shx rm readme.md",
+                "postpublish": "npx shx rm src/index.mjs && npx shx rm src/index.cjs && npx shx rm readme.md",
             },
-            files: ["src/index.esm.js", "src/index.cjs.js", "src/index.js", "src/cli.js"],
+            files: ["src/index.mjs", "src/index.cjs", "src/index.js", "src/cli.js"],
             author: `${god}`,
             license: isPR ? "CC-BY-4.0" : "MIT",
             homepage: isPR ? `https://planetrenox.github.io/${packageName}` : '',
             repository: `git+https://github.com/${god}/${packageName}.git`,
             funding: isPR ? "https://bit.ly/incessant-vibration" : "",
             keywords: [""],
-            dependencies: {
-                "cute-con": "latest",
-            },
             devDependencies: {
                 "@rollup/plugin-node-resolve": "^15.2.3"
             }
@@ -116,8 +113,8 @@ function createRollupConfig()
 export default {
     input: 'src/index.js',
     output: [
-        { file: 'src/index.cjs.js', format: 'cjs' },
-        { file: 'src/index.esm.js', format: 'es' }
+        { file: 'src/index.cjs', format: 'cjs' },
+        { file: 'src/index.mjs', format: 'es' }
     ],
     plugins: [
         resolve()
@@ -249,6 +246,7 @@ function createIndexHtml()
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${packageName}</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+  ${isPR ? '<script data-goatcounter="https://ibetyoucountsheep.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>' : ''}
   <style>
     body {
       background-color: #f0f2f5;
