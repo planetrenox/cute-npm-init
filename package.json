@@ -26,7 +26,6 @@
   "license": "CC-BY-4.0",
   "homepage": "https://bit.ly/incessant-vibration",
   "dependencies": {
-    "commander": "^12.0.0",
-    "cute-con": "^1.0.0"
+    "cute-con": "latest"
   }
 }
