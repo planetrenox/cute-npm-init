@@ -9,7 +9,7 @@ let packageName;
 let cwd;
 let srcDirPath;
 let docsDirPath;
-let god;
+let god = '';
 let isPR = false;
 
 const whoami = () =>
@@ -29,16 +29,16 @@ function main()
     srcDirPath = path.join(cwd, 'src');
     docsDirPath = path.join(cwd, 'docs');
     fs.mkdirSync(srcDirPath, {recursive: true});
-    fs.mkdirSync(docsDirPath, {recursive: true});
+    //fs.mkdirSync(docsDirPath, {recursive: true});
     createPackageJson();
     createIndexJs();
     createCliJs();
-    createRollupConfig();
+    //createRollupConfig();
     createGitIgnore();
     createReadMe();
     createIndexHtml();
-    createTestJs();
-    createDotNpmrc();
+    //createTestJs();
+    //createDotNpmrc();
 
     _(`Project initialization completed with cute-npm-init`);
 }
@@ -50,27 +50,24 @@ function createPackageJson()
     if (!fs.existsSync(packageJsonPath)) {
         const packageJson = {
             name: packageName,
-            version: "0.0.0",
-            description: "Experimental piercer stronghold.",
-            type: "module",
-            module: "src/index.mjs",
-            main: "src/index.cjs",
+            version: "0.1.0",
+            description: "Experimental.",
+            main: `./dist/uniport.js`,
             bin: {[packageName]: "src/cli.js"},
             scripts: {
+                "build": "uniport",
                 "cli": "node ./src/cli.js",
-                "build": "npx rollup --config src/rollup.config.js",
-                "prepublishOnly": "npm run build && npx shx cp docs/readme.md readme.md",
-                "postpublish": "npx shx rm src/index.mjs && npx shx rm src/index.cjs && npx shx rm readme.md",
+                "prepublishOnly": "npm run build"
             },
-            files: ["src/index.mjs", "src/index.cjs", "src/index.js", "src/cli.js"],
             author: `${god}`,
-            license: isPR ? "CC-BY-4.0" : "MIT",
+            license: isPR ? "CC BY-ND 4.0" : "MIT",
             homepage: isPR ? `https://planetrenox.github.io/${packageName}` : '',
             repository: `git+https://github.com/${god}/${packageName}.git`,
             funding: isPR ? "https://bit.ly/incessant-vibration" : "",
-            keywords: [""],
+            keywords: ["front-end", "cli", "frameworks"],
+            files: ["src, dist"],
             devDependencies: {
-                "@rollup/plugin-node-resolve": "^15.2.3"
+                "uniport": "latest"
             }
         };
         fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
@@ -82,8 +79,8 @@ function createIndexJs()
 {
     const indexJsPath = path.join(srcDirPath, 'index.js');
     if (!fs.existsSync(indexJsPath)) {
-        fs.writeFileSync(indexJsPath, `import { _ } from 'cute-con';
-export const main = () => _("test.");
+        fs.writeFileSync(indexJsPath, `// import { _ } from 'cute-con';
+// export const main = () => _("test.");
 `);
         _("Generated index.js with cute defaults. For quick testing: npm run test");
     }
@@ -95,8 +92,8 @@ function createCliJs()
     if (!fs.existsSync(cliJsPath)) {
         const cliJsContent = `#!/usr/bin/env node
 // import yargs from 'yargs';
-import { _ } from 'cute-con';
-_(\`${packageName}!!\`);
+// import { _ } from 'cute-con';
+// _(\`${packageName}!!\`);
 // if (yargs.argv['-f'] === true) _(yargs.argv._[0]);
 `;
         fs.writeFileSync(cliJsPath, cliJsContent);
@@ -197,7 +194,7 @@ function createGitIgnore()
 
 function createReadMe()
 {
-    const readMePath = path.join(docsDirPath, 'readme.md');
+    const readMePath = path.join(cwd, 'readme.md');
     if (!fs.existsSync(readMePath)) {
         const readMeContent = `available on [npm](https://www.npmjs.com/package/${packageName})
 \`\`\`⢸⠉⣹⠋⠉⢉⡟⢩⢋⠋⣽⡻⠭⢽⢉⠯⠭⠭⠭⢽⡍⢹⡍⠙⣯⠉⠉⠉⠉⠉⣿⢫⠉⠉⠉⢉⡟⠉⢿⢹⠉⢉⣉⢿⡝⡉⢩⢿⣻⢍⠉⠉⠩⢹⣟⡏⠉⠹⡉⢻⡍⡇
@@ -237,56 +234,18 @@ import {} from '${packageName}';
 
 function createIndexHtml()
 {
-    const indexHtmlPath = path.join(cwd, 'index.html');
+    const indexHtmlPath = path.join(cwd, 'index.htm');
     if (!fs.existsSync(indexHtmlPath)) {
         fs.writeFileSync(indexHtmlPath, `<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${packageName}</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
   ${isPR ? '<script data-goatcounter="https://ibetyoucountsheep.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>' : ''}
-  <style>
-    body {
-      background-color: #f0f2f5;
-      background-image: url('https://www.transparenttextures.com/patterns/light-noise-diagonal.png');
-    }
-    .container {
-      max-width: 800px;
-      margin: 2rem auto;
-      background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      padding: 2rem;
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    }
-    h1 {
-      color: #0366d6;
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    p {
-      color: #4a5568;
-      line-height: 1.6;
-    }
-  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>${packageName}</h1>
-    <div id="textContent"></div>
-  </div>
-  <script>
-    fetch('docs/readme.md')
-      .then(response => response.text())
-      .then(text => {
-        document.getElementById('textContent').innerText = text;
-      })
-      .catch(error => console.log('Error loading the textContent:', error));
-  </script>
 </body>
-
 </html>
 `);
         _("Generated index.html with cute defaults.");
