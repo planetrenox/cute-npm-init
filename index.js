@@ -60,7 +60,7 @@ function createPackageJson()
                 "prepublishOnly": "npm run build"
             },
             author: `${god}`,
-            license: isPR ? "CC BY-ND 4.0" : "MIT",
+            license: isPR ? "CC-BY 4.0" : "MIT",
             homepage: isPR ? `https://planetrenox.github.io/${packageName}` : '',
             repository: `git+https://github.com/${god}/${packageName}.git`,
             funding: isPR ? "https://bit.ly/incessant-vibration" : "",
@@ -223,9 +223,6 @@ A tiny description.
 \`\`\`JavaScript
 import {} from '${packageName}';
 \`\`\`
-
-
-![img](https://fakeimg.pl/735x280)
 `;
         fs.writeFileSync(readMePath, readMeContent);
         _("Generated readme.md with cute defaults.");
