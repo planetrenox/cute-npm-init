@@ -1,14 +1,11 @@
 {
   "name": "cute-npm-init",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "npm init but cute",
   "type": "module",
   "main": "index.js",
   "bin": {
     "cute-npm-init": "index.js"
-  },
-  "scripts": {
-    "postinstall": "echo 'cute-npm-init in a new or existing dir and it won't overwrite. Pair with cute-npm-link.'"
   },
   "exports": "./index.js",
   "keywords": [
