@@ -8,7 +8,7 @@ import { _ } from 'cute-con';
 let packageName;
 let cwd;
 let srcDirPath;
-let docsDirPath;
+let githubDirPath;
 let god = '';
 let isPR = false;
 
@@ -27,9 +27,9 @@ function main()
     cwd = process.cwd();
     packageName = path.basename(cwd);
     srcDirPath = path.join(cwd, 'src');
-    docsDirPath = path.join(cwd, 'docs');
+    githubDirPath = path.join(cwd, '.github/workflows');
     fs.mkdirSync(srcDirPath, {recursive: true});
-    //fs.mkdirSync(docsDirPath, {recursive: true});
+    fs.mkdirSync(githubDirPath, {recursive: true});
     createPackageJson();
     createIndexJs();
     createCliJs();
@@ -38,7 +38,7 @@ function main()
     createReadMe();
     createIndexHtml();
     //createTestJs();
-    //createDotNpmrc();
+    createGithubDir();
 
     _(`Project initialization completed with cute-npm-init`);
 }
@@ -262,11 +262,12 @@ main();
     }
 }
 
-function createDotNpmrc()
+function createGithubDir()
 {
-    const npmrcPath = path.join(cwd, '.npmrc');
-    if (!fs.existsSync(npmrcPath)) {
-        fs.writeFileSync(npmrcPath, `package-lock=false`);
+    const cuteInitPath = path.join(githubDirPath, 'cute-npm-init');
+    const npmPublish = path.join(githubDirPath, 'npm publish');
+    // url('cuteInitPath').soft.write(``);
+    // url('npmPublish').soft.write(``);
         _("Generated .npmrc");
     }
 }
