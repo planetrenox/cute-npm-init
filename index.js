@@ -37,7 +37,7 @@ function main()
     createGitIgnore();
     createReadMe();
     createIndexHtml();
-    //createTestJs();
+    createTestJs();
     createGithubDir();
 
     _(`Project initialization completed with cute-npm-init`);
@@ -53,6 +53,7 @@ function createPackageJson()
             version: "0.1.0",
             description: "Experimental.",
             main: `./dist/uniport.js`,
+            browser: './dist/uniport.mjs',
             bin: {[packageName]: "src/cli.js"},
             scripts: {
                 "build": "uniport",
@@ -67,7 +68,7 @@ function createPackageJson()
             keywords: ["front-end", "cli", "frameworks"],
             files: ["src, dist"],
             devDependencies: {
-                "uniport": "latest"
+                "uniport": "~0.3"
             }
         };
         fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
