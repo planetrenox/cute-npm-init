@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { _ } from 'cute-con';
+import URL from 'cute-fs';
 
 let packageName;
 let cwd;
@@ -56,9 +57,8 @@ function createPackageJson()
             browser: './dist/uniport.mjs',
             bin: {[packageName]: "src/cli.js"},
             scripts: {
-                "build": "uniport",
                 "cli": "node ./src/cli.js",
-                "prepublishOnly": "npm run build"
+                "prepublishOnly": ""
             },
             author: `${god}`,
             license: isPR ? "CC-BY 4.0" : "MIT",
@@ -66,10 +66,7 @@ function createPackageJson()
             repository: `git+https://github.com/${god}/${packageName}.git`,
             funding: isPR ? "https://bit.ly/incessant-vibration" : "",
             keywords: ["front-end", "cli", "frameworks"],
-            files: ["src, dist"],
-            devDependencies: {
-                "uniport": "~0.3"
-            }
+            files: ["src, dist"]
         };
         fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
         _("Generated package.json with cute defaults.");
@@ -267,10 +264,51 @@ function createGithubDir()
 {
     const cuteInitPath = path.join(githubDirPath, 'cute-npm-init');
     const npmPublish = path.join(githubDirPath, 'npm publish');
-    // url('cuteInitPath').soft.write(``);
-    // url('npmPublish').soft.write(``);
-        _("Generated .npmrc");
-    }
+    URL(cuteInitPath).soft.write(`name: cute-npm-init
+on:
+  workflow_dispatch:
+  
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install -g cute-npm-init
+      - run: cute-npm-init
+      - run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Bot commit" -a || echo "No changes to commit"
+          git pull --rebase
+          git push`);
+    URL(npmPublish).soft.write(`name: npm publish
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
+      - run: npm cache clean --force
+      - run: rm -rf package-lock.json
+      - run: npm install
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: \${{secrets.npm_token}}`);
+    _("Generated workflows.");
+
 }
 
 main();

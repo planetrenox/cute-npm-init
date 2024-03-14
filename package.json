@@ -1,6 +1,6 @@
 {
   "name": "cute-npm-init",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "description": "npm init but cute",
   "type": "module",
   "main": "index.js",
@@ -23,6 +23,7 @@
   "license": "CC-BY-4.0",
   "homepage": "https://bit.ly/incessant-vibration",
   "dependencies": {
-    "cute-con": "~1.0"
+    "cute-con": "~1.0",
+    "cute-fs": "~0.2.0"
   }
 }
